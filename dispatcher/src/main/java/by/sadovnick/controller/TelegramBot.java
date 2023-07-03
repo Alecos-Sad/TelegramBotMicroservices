@@ -1,14 +1,14 @@
 package by.sadovnick.controller;
 
-import javax.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Telegramm Bot главный класс
@@ -33,10 +33,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * Метод постинициализации. Внедрение UpdateController через init - чтобы избежать циклической зависимости
-     *  между{@link TelegramBot} и {@link UpdateController}.
+     * между{@link TelegramBot} и {@link UpdateController}.
      */
     @PostConstruct
-    public void init(){
+    public void init() {
         updateController.registerBot(this);
     }
 
@@ -47,6 +47,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * Получение и отправка сообщений ботом
+     *
      * @param update - полученное сообщение
      */
     @Override
@@ -56,6 +57,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * Ответ бота
+     *
      * @param message - посылаемое сообщение
      */
     public void sendAnswerMessage(SendMessage message) {
