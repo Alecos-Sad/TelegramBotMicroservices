@@ -1,5 +1,6 @@
 package by.sadovnick.controller;
 
+import javax.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -9,18 +10,34 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+/**
+ * Telegramm Bot главный класс
+ */
 @Component
 @Log4j
 public class TelegramBot extends TelegramLongPollingBot {
     @Value("${bot.name}")
     private String botName;
-
     @Value("${bot.token}")
     private String botToken;
+    private UpdateController updateController;
 
     @Override
     public String getBotUsername() {
         return botName;
+    }
+
+    public TelegramBot(UpdateController updateController) {
+        this.updateController = updateController;
+    }
+
+    /**
+     * Метод постинициализации. Внедрение UpdateController через init - чтобы избежать циклической зависимости
+     *  между{@link TelegramBot} и {@link UpdateController}.
+     */
+    @PostConstruct
+    public void init(){
+        updateController.registerBot(this);
     }
 
     @Override
@@ -28,6 +45,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         return botToken;
     }
 
+    /**
+     * Получение и отправка сообщений ботом
+     * @param update - полученное сообщение
+     */
     @Override
     public void onUpdateReceived(Update update) {
         Message originalMessage = update.getMessage();
@@ -36,11 +57,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         //ответ в тг боте
         SendMessage response = new SendMessage();
         response.setChatId(originalMessage.getChatId().toString());
-        response.setText("Hello from bot");
+        response.setText("И я говорю что - " + originalMessage.getText());
         sendAnswerMessage(response);
     }
 
-    //ответ
+    /**
+     * Ответ бота
+     * @param message - посылаемое сообщение
+     */
     public void sendAnswerMessage(SendMessage message) {
         if (message != null) {
             try {
