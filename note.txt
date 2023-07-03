@@ -8,3 +8,35 @@ Use this token to access the HTTP API:
 6232371044:AAHSW_DC7exF2fV2sDdbK_JJoqzVelW5JAY
 Keep your token secure and store it safely,
 it can be used by anyone to control your bot.
+
+--Разворачиваем RabbitMQ в Docker--
+docker pull rabbitmq:3.11.0-management
+
+Чтобы данные к контейнере сохранялись. Т.к при перезапуске системы данные из старого контейнера будут удалены.
+Создаем временное хпанилище volume куда будут сохранятся данные и которому потом будет подключаться докер
+при перезапусках системы.
+docker volume create rabbitmq_data
+
+Запуск с параметрами:
+-d запуск контейнера в фоновом режиме и вернет идентификатор контейнера в командную строку
+--hostname rabbitmq позволяет подключиться к контейнеру извне с других контейнеров
+--name rabbitmq задает имя контейнера
+-p 5672:5672 задает порты. Причем слева от двоеточия это порт по которому будем подключаться снаружи.
+Справа порт который используется внутри контейнера.
+-p 15672:15672 порт вебинтерфейса rabbitmq.
+-v c:\rabbitmq_data прикручивает volume т.е внешнее хранилище данных и путь до него.
+--restart=unless-stopped rabbitmq:3.11.0-management - контейнер будет автоматически запускаться при запуске докера
+независимо от того как он завершился (нормально или упал с ошибками).
+docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 -p 15672:15672 -v c:\rabbitmq_data --restart=unless-stopped rabbitmq:3.11.0-management
+
+Вход в контейнер
+docker exec -it rabbitmq /bin/bash
+
+Добавляем user с именем admin и паролем admin
+add_user admin admin (создать не удалось. Создал через веб интерфейс)
+
+set_user_tags admin administrator - типа присваиваем администратора
+set permissions -p / admin ".*" ".*" ".*" - даем права все
+
+
+
