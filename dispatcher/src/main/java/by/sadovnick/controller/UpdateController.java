@@ -100,7 +100,7 @@ public class UpdateController {
    *
    * @param sendMessage - ответ бота.
    */
-  private void setView(SendMessage sendMessage) {
+  public void setView(SendMessage sendMessage) {
     telegramBot.sendAnswerMessage(sendMessage);
   }
 
