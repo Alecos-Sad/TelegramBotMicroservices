@@ -13,7 +13,7 @@ it can be used by anyone to control your bot.
 docker pull rabbitmq:3.11.0-management
 
 Чтобы данные к контейнере сохранялись. Т.к при перезапуске системы данные из старого контейнера будут удалены.
-Создаем временное хпанилище volume куда будут сохранятся данные и которому потом будет подключаться докер
+Создаем временное хранилище volume куда будут сохранятся данные и которому потом будет подключаться докер
 при перезапусках системы.
 docker volume create rabbitmq_data
 
@@ -35,7 +35,7 @@ docker exec -it rabbitmq /bin/bash
 Добавляем user с именем admin и паролем admin
 rabbitmqctl add_user root root
 
-set_user_tags admin administrator - типа присваиваем администратора
+rabbitmqctl set_user_tags root administrator - типа присваиваем администратора
 rabbitmqctl set_permissions -p / root ".*" ".*" ".*"  - даем права все
 
 ** Создание микросервиса Node**
@@ -46,6 +46,28 @@ rabbitmqctl set_permissions -p / root ".*" ".*" ".*"  - даем права вс
 В чат телеграма отправляем сообщение -> оно доставляется в диспатчер -> диспатчер передает в брокер -> брокер его пересылает в ноду
 -> нода его получила и достала id чата и сформировала ответ с текстом Hello from node -> ответ передан в брокер -> брокер доставил в диспатчер ->
 диспатчер передал в чат.
+
+Подключаем Postgres через докер.
+docker run -d --hostname postgresdatabase --name postgresdatabase -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -e POSTGRES_DB=postgresdatabase -v c:\postgres_data --restart=unless-stopped postgres:14.5
+-- hostname - имя для подключения к этому контейнеру из других контейнеров.
+
+Тестовый запрос при подключении к БД
+create table test_table(
+  "name" text
+);
+
+Type jsonb - это такой тип для сохранения объекта в бд в виде не json а jsonb.
+jsonb - по этому json можно навигироваться при помощи специальных запросов.
+Для подключения необходима  <!-- Для сохранения в бд jsonb -->
+                                   <dependency>
+                                       <groupId>com.vladmihalcea</groupId>
+                                       <artifactId>hibernate-types-52</artifactId>
+                                       <version>2.2.2</version>
+                                   </dependency>
+
+
+
+
 
 
 
