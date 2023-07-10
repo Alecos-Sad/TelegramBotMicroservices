@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Objects;
+
 /**
  * Класс который распределяет сообщения приходящие от бота
  */
@@ -46,7 +48,7 @@ public class UpdateController {
     if (update == null) {
       log.error("Received update is null");
     }
-    if (update.getMessage() != null) {
+    if (Objects.requireNonNull(update).hasMessage()) {
       distributeMessagesByType(update);
     } else {
       log.error("Unsupported message type is received: " + update);
@@ -60,11 +62,11 @@ public class UpdateController {
    */
   private void distributeMessagesByType(Update update) {
     Message message = update.getMessage();
-    if (message.getText() != null) {
+    if (message.hasText()) {
       processTextMessage(update);
-    } else if (message.getDocument() != null) {
+    } else if (message.hasDocument()) {
       processDocMessage(update);
-    } else if (message.getPhoto() != null) {
+    } else if (message.hasPhoto()) {
       processPhotoMessage(update);
     } else {
       setUnsupportedMessageTypeView(update);

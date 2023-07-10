@@ -1,12 +1,10 @@
 package by.sadovnick.entity;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.persistence.*;
@@ -14,7 +12,9 @@ import javax.persistence.*;
 /**
  * Класс для сохранения всех updates.
  */
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(exclude = "id")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
