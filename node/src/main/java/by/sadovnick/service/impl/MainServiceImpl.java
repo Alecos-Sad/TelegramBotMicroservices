@@ -3,6 +3,7 @@ package by.sadovnick.service.impl;
 import by.sadovnick.dao.AppUserDao;
 import by.sadovnick.dao.RowDataDao;
 import by.sadovnick.entity.AppDocument;
+import by.sadovnick.entity.AppPhoto;
 import by.sadovnick.entity.AppUser;
 import by.sadovnick.entity.RowData;
 import by.sadovnick.entity.enums.UserState;
@@ -45,8 +46,6 @@ public class MainServiceImpl implements MainService {
     /**
      * Основной метод по обработке текстовых сообщений.
      * Отправка сообщения в чат.
-     *
-     * @param update - соощение.
      */
     @Override
     public void processTextMessage(Update update) {
@@ -71,6 +70,10 @@ public class MainServiceImpl implements MainService {
         sendAnswer(output, chatId);
     }
 
+    /**
+     * Основной метод по обработке документов сообщений.
+     * Отправка сообщения в чат.
+     */
     @Override
     public void processDocMessage(Update update) {
         saveRowData(update);
@@ -100,9 +103,16 @@ public class MainServiceImpl implements MainService {
         if (isNotAllowToSendContent(chatId, appUser)) {
             return;
         }
-        //todo добавить сохранение фото.
-        String answer = "Фото успешно загружено! Ссылка для скачивания http://www.google.com/photo";
-        sendAnswer(answer, chatId);
+        try {
+            AppPhoto photo = fileService.processPhoto(update.getMessage());
+            //todo добавить генерацию ссылки для скачивания документа
+            String answer = "Фото успешно загружено! Ссылка для скачивания http://www.google.com/photo";
+            sendAnswer(answer, chatId);
+        } catch (UploadFileException ex) {
+            log.error(ex);
+            String error = "К сожалению, загрузка фото не удалась. Повторите попытку позже!";
+            sendAnswer(error, chatId);
+        }
     }
 
     /**

@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>dispatcher</module>
-      <module>common-rabbitmq</module>
+        <module>common-rabbitmq</module>
         <module>node</module>
         <module>common-jpa</module>
     </modules>

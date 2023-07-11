@@ -5,19 +5,22 @@ import lombok.*;
 import javax.persistence.*;
 
 /**
- * Документ в виде потока байт.
+ * Сущность документа для сохранения в таблицу бд.
  */
-@Builder
 @Getter
 @Setter
 @EqualsAndHashCode(exclude = "id")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "binary_content")
-public class BinaryContent {
+@Table(name = "app_photo")
+public class AppPhoto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private byte[] fileArrayOfByte;
+    private String telegramField;
+    @OneToOne
+    private BinaryContent binaryContent;
+    private Integer fileSize;
 }
