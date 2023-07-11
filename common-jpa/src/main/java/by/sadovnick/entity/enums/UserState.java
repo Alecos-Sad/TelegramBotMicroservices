@@ -1,4 +1,4 @@
-package by.sadovnick.entity;
+package by.sadovnick.entity.enums;
 
 /**
  * Состояние пользователя. В зависимости от состояния ожидаем определенных действий.

@@ -2,11 +2,15 @@ package by.sadovnick.service.impl;
 
 import by.sadovnick.dao.AppUserDao;
 import by.sadovnick.dao.RowDataDao;
+import by.sadovnick.entity.AppDocument;
 import by.sadovnick.entity.AppUser;
 import by.sadovnick.entity.RowData;
-import by.sadovnick.entity.UserState;
+import by.sadovnick.entity.enums.UserState;
+import by.sadovnick.exceptions.UploadFileException;
+import by.sadovnick.service.FileService;
 import by.sadovnick.service.MainService;
 import by.sadovnick.service.ProducerService;
+import by.sadovnick.service.enums.ServiceCommand;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +18,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import static by.sadovnick.entity.UserState.BASIC_STATE;
-import static by.sadovnick.entity.UserState.WAIT_FOR_EMAIL_STATE;
-import static by.sadovnick.service.ServiceCommands.*;
+import static by.sadovnick.entity.enums.UserState.BASIC_STATE;
+import static by.sadovnick.entity.enums.UserState.WAIT_FOR_EMAIL_STATE;
+import static by.sadovnick.service.enums.ServiceCommand.*;
 
 /**
  * @see MainService
@@ -27,12 +31,15 @@ public class MainServiceImpl implements MainService {
     private final RowDataDao rowDataDao;
     private final ProducerService producerService;
     private final AppUserDao appUserDao;
+    private final FileService fileService;
 
     @Autowired
-    public MainServiceImpl(RowDataDao rowDataDao, ProducerService producerService, AppUserDao appUserDao) {
+    public MainServiceImpl(RowDataDao rowDataDao, ProducerService producerService,
+                           AppUserDao appUserDao, FileService fileService) {
         this.rowDataDao = rowDataDao;
         this.producerService = producerService;
         this.appUserDao = appUserDao;
+        this.fileService = fileService;
     }
 
     /**
@@ -48,8 +55,8 @@ public class MainServiceImpl implements MainService {
         UserState userState = appUser.getUserState();
         String text = update.getMessage().getText();
         String output = "";
-
-        if (CANSEL.equals(text)) {
+        ServiceCommand serviceCommand = fromValue(text);
+        if (CANSEL.equals(serviceCommand)) {
             output = canselProcess(appUser);
         } else if (BASIC_STATE.equals(userState)) {
             output = processServiceCommand(appUser, text);
@@ -72,9 +79,16 @@ public class MainServiceImpl implements MainService {
         if (isNotAllowToSendContent(chatId, appUser)) {
             return;
         }
-        //todo добавить сохранение документа.
-        String answer = "Документ успешно загружен! Ссылка для скачивания http://www.google.com/doc";
-        sendAnswer(answer, chatId);
+        try {
+            AppDocument doc = fileService.processDoc(update.getMessage());
+            //todo добавить генерацию ссылки для скачивания документа
+            String answer = "Документ успешно загружен! Ссылка для скачивания http://www.google.com/doc";
+            sendAnswer(answer, chatId);
+        } catch (UploadFileException ex) {
+            log.error(ex);
+            String error = "К сожалению, загрузка файла не удалась. Повторите попытку позже!";
+            sendAnswer(error, chatId);
+        }
     }
 
 
@@ -125,12 +139,13 @@ public class MainServiceImpl implements MainService {
      * Обработка команд введенных пользователем.
      */
     private String processServiceCommand(AppUser appUser, String cmd) {
-        if (REGISTRATION.equals(cmd)) {
+        ServiceCommand serviceCommand = fromValue(cmd);
+        if (REGISTRATION.equals(serviceCommand)) {
             //todo добавить регистрацию.
             return "Временно недоступна";
-        } else if (HELP.equals(cmd)) {
+        } else if (HELP.equals(serviceCommand)) {
             return help();
-        } else if (START.equals(cmd)) {
+        } else if (START.equals(serviceCommand)) {
             return "Приветствую! Чтобы посмотреть список доступных команд введите /help";
         } else {
             return "Неизвестная команда! Чтобы посмотреть список доступных команд введите /help";
