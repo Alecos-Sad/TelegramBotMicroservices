@@ -1,4 +1,4 @@
-package by.sadovnick;
+package by.sadovnick.controller;
 
 import by.sadovnick.entity.AppDocument;
 import by.sadovnick.entity.AppPhoto;

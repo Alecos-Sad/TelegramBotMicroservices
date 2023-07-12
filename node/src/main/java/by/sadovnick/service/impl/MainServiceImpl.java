@@ -11,6 +11,7 @@ import by.sadovnick.exceptions.UploadFileException;
 import by.sadovnick.service.FileService;
 import by.sadovnick.service.MainService;
 import by.sadovnick.service.ProducerService;
+import by.sadovnick.service.enums.LinkType;
 import by.sadovnick.service.enums.ServiceCommand;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,8 +85,8 @@ public class MainServiceImpl implements MainService {
         }
         try {
             AppDocument doc = fileService.processDoc(update.getMessage());
-            //todo добавить генерацию ссылки для скачивания документа
-            String answer = "Документ успешно загружен! Ссылка для скачивания http://www.google.com/doc";
+            String link = fileService.generateLink(doc.getId(), LinkType.GET_DOC);
+            String answer = "Документ успешно загружен! Ссылка для скачивания " + link;
             sendAnswer(answer, chatId);
         } catch (UploadFileException ex) {
             log.error(ex);
@@ -105,8 +106,8 @@ public class MainServiceImpl implements MainService {
         }
         try {
             AppPhoto photo = fileService.processPhoto(update.getMessage());
-            //todo добавить генерацию ссылки для скачивания документа
-            String answer = "Фото успешно загружено! Ссылка для скачивания http://www.google.com/photo";
+            String link = fileService.generateLink(photo.getId(), LinkType.GET_DOC);
+            String answer = "Фото успешно загружено! Ссылка для скачивания " + link;
             sendAnswer(answer, chatId);
         } catch (UploadFileException ex) {
             log.error(ex);

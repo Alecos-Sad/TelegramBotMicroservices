@@ -1,5 +1,6 @@
 package by.sadovnick.service.impl;
 
+import by.sadovnick.CryptoTool;
 import by.sadovnick.dao.AppDocumentDao;
 import by.sadovnick.dao.AppPhotoDao;
 import by.sadovnick.dao.BinaryContentDao;
@@ -8,6 +9,7 @@ import by.sadovnick.entity.AppPhoto;
 import by.sadovnick.entity.BinaryContent;
 import by.sadovnick.exceptions.UploadFileException;
 import by.sadovnick.service.FileService;
+import by.sadovnick.service.enums.LinkType;
 import lombok.extern.log4j.Log4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,14 +39,19 @@ public class FileServiceImpl implements FileService {
     private String fileInfoUri;
     @Value("${service.file_storage.uri}")
     private String fileStorageUri;
+    @Value("${link.address}")
+    private String linkAddress;
     private final AppDocumentDao appDocumentDao;
     private final BinaryContentDao binaryContentDao;
     private final AppPhotoDao appPhotoDao;
+    private final CryptoTool cryptoTool;
 
-    public FileServiceImpl(AppDocumentDao appDocumentDao, BinaryContentDao binaryContentDao, AppPhotoDao photoDao, AppPhotoDao appPhotoDao) {
+    public FileServiceImpl(AppDocumentDao appDocumentDao, BinaryContentDao binaryContentDao,
+                           AppPhotoDao photoDao, AppPhotoDao appPhotoDao, CryptoTool cryptoTool) {
         this.appDocumentDao = appDocumentDao;
         this.binaryContentDao = binaryContentDao;
         this.appPhotoDao = appPhotoDao;
+        this.cryptoTool = cryptoTool;
     }
 
     /**
@@ -72,9 +79,14 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public AppPhoto processPhoto(Message telegramMessage) {
-        //Возвращает альбом. Поэтому берем только первое фото.
+        //решение проблемы с маленьким скачанным размером фото
+        //Фото сохраняется в бд как массив данных разных размеров. И для того чтобы при загрузки из бд
+        //не достать первую самую маленькую картинку, достаем самый последний. Телега позволяет хранить
+        //в одном файле фото нескольких размеров. Поэтому и класс называется PhotoSize.
+        int photoSizeCount = telegramMessage.getPhoto().size();
+        int photoIndex = photoSizeCount > 1 ? telegramMessage.getPhoto().size() - 1 : 0;
         //todo реализовать обработку альбома
-        PhotoSize telegramPhoto = telegramMessage.getPhoto().get(0);
+        PhotoSize telegramPhoto = telegramMessage.getPhoto().get(photoIndex);
         //достаем id документа
         String field = telegramPhoto.getFileId();
         //запрос к серверу телеграмма
@@ -87,6 +99,15 @@ public class FileServiceImpl implements FileService {
         } else {
             throw new UploadFileException("Bad response from telegram service: " + response);
         }
+    }
+
+    /**
+     * Получает хэш и вставляет его в ссылку.
+     */
+    @Override
+    public String generateLink(Long docId, LinkType linkType) {
+        String hash = cryptoTool.hashOf(docId);
+        return "http:// " + linkAddress + "/" + linkType + "?id=" + hash;
     }
 
     /**
