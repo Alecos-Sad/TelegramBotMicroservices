@@ -1,9 +1,10 @@
 package by.sadovnick.service;
 
+import by.sadovnick.controller.UpdateProcessor;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 /**
- * Принимает ответы из RabbitMQ и передача в {@link by.sadovnick.controller.UpdateController}
+ * Принимает ответы из RabbitMQ и передача в {@link UpdateProcessor}
  */
 public interface AnswerConsumer {
 

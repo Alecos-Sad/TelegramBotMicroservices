@@ -1,8 +1,6 @@
 package by.sadovnick.dto;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Dto для того чтобы Spring мог на лету смапить входящий json от почты и отдать
@@ -10,7 +8,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@RequiredArgsConstructor
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class MailParams {
     private String id;
     //адрес на который следует отправить письмо

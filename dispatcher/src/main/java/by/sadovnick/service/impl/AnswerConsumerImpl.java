@@ -1,6 +1,6 @@
 package by.sadovnick.service.impl;
 
-import by.sadovnick.controller.UpdateController;
+import by.sadovnick.controller.UpdateProcessor;
 import by.sadovnick.service.AnswerConsumer;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
@@ -13,15 +13,15 @@ import static by.sadovnick.RabbitQueue.ANSWER_MESSAGE;
  */
 @Service
 public class AnswerConsumerImpl implements AnswerConsumer {
-    private final UpdateController updateController;
+    private final UpdateProcessor updateProcessor;
 
-    public AnswerConsumerImpl(UpdateController updateController) {
-        this.updateController = updateController;
+    public AnswerConsumerImpl(UpdateProcessor updateProcessor) {
+        this.updateProcessor = updateProcessor;
     }
 
     @Override
     @RabbitListener(queues = ANSWER_MESSAGE)
     public void consume(SendMessage sendMessage) {
-        updateController.setView(sendMessage);
+        updateProcessor.setView(sendMessage);
     }
 }

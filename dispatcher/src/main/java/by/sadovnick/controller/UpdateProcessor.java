@@ -19,13 +19,13 @@ import java.util.Objects;
  */
 @Controller
 @Log4j
-public class UpdateController {
+public class UpdateProcessor {
 
   private TelegramBot telegramBot;
   private final MessageUtils messageUtils;
   private final UpdateProducer updateProducer;
 
-  public UpdateController(MessageUtils messageUtils, UpdateProducer updateProducer) {
+  public UpdateProcessor(MessageUtils messageUtils, UpdateProducer updateProducer) {
     this.messageUtils = messageUtils;
     this.updateProducer = updateProducer;
   }
@@ -47,6 +47,7 @@ public class UpdateController {
   public void processUpdate(Update update) {
     if (update == null) {
       log.error("Received update is null");
+      return;
     }
     if (Objects.requireNonNull(update).hasMessage()) {
       distributeMessagesByType(update);
@@ -97,7 +98,7 @@ public class UpdateController {
 
   /**
    * Передача сообщения. Почему нельзя вызвать на телеграмботе напрямую метод #sendAnswerMessage()? Потому, что будем передавать в
-   * {@link UpdateController} также сообщения из сервисов, то из сервисов не сможем вызвать метод на телеграмботе. Этот метод будет пробрасывать ответ
+   * {@link UpdateProcessor} также сообщения из сервисов, то из сервисов не сможем вызвать метод на телеграмботе. Этот метод будет пробрасывать ответ
    * дальше в телеграмбот. Также можно централизованно добалять логику для всех вызовов.
    *
    * @param sendMessage - ответ бота.

@@ -8,6 +8,7 @@ import by.sadovnick.entity.AppUser;
 import by.sadovnick.entity.RowData;
 import by.sadovnick.entity.enums.UserState;
 import by.sadovnick.exceptions.UploadFileException;
+import by.sadovnick.service.AppUserService;
 import by.sadovnick.service.FileService;
 import by.sadovnick.service.MainService;
 import by.sadovnick.service.ProducerService;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+
+import java.util.Optional;
 
 import static by.sadovnick.entity.enums.UserState.BASIC_STATE;
 import static by.sadovnick.entity.enums.UserState.WAIT_FOR_EMAIL_STATE;
@@ -34,14 +37,16 @@ public class MainServiceImpl implements MainService {
     private final ProducerService producerService;
     private final AppUserDao appUserDao;
     private final FileService fileService;
+    private final AppUserService appUserService;
 
     @Autowired
     public MainServiceImpl(RowDataDao rowDataDao, ProducerService producerService,
-                           AppUserDao appUserDao, FileService fileService) {
+                           AppUserDao appUserDao, FileService fileService, AppUserService appUserService) {
         this.rowDataDao = rowDataDao;
         this.producerService = producerService;
         this.appUserDao = appUserDao;
         this.fileService = fileService;
+        this.appUserService = appUserService;
     }
 
     /**
@@ -61,7 +66,7 @@ public class MainServiceImpl implements MainService {
         } else if (BASIC_STATE.equals(userState)) {
             output = processServiceCommand(appUser, text);
         } else if (WAIT_FOR_EMAIL_STATE.equals(userState)) {
-            //todo добавить обработку email
+            output = appUserService.setEmail(appUser, text);
         } else {
             log.error("Unknown user state: " + userState);
             output = "Неизвестная ошибка! Введите /cansel и попробуйте снова!";
@@ -152,8 +157,7 @@ public class MainServiceImpl implements MainService {
     private String processServiceCommand(AppUser appUser, String cmd) {
         ServiceCommand serviceCommand = fromValue(cmd);
         if (REGISTRATION.equals(serviceCommand)) {
-            //todo добавить регистрацию.
-            return "Временно недоступна";
+            return appUserService.registerUser(appUser);
         } else if (HELP.equals(serviceCommand)) {
             return help();
         } else if (START.equals(serviceCommand)) {
@@ -185,20 +189,19 @@ public class MainServiceImpl implements MainService {
      */
     private AppUser findOrSaveAppUser(Update update) {
         User telegramUser = update.getMessage().getFrom();
-        AppUser persistentAppUser = appUserDao.findAppUserByTelegramUserId(telegramUser.getId());
-        if (persistentAppUser == null) {
+        Optional<AppUser> optional = appUserDao.findByTelegramUserId(telegramUser.getId());
+        if (optional.isEmpty()) {
             AppUser transientAppUser = AppUser.builder()
                     .telegramUserId(telegramUser.getId())
                     .userName(telegramUser.getUserName())
                     .firstName(telegramUser.getFirstName())
                     .lastName(telegramUser.getLastName())
-                    //todo изменить значение по умолчанию после добавления реистрации
-                    .isActive(true)
+                    .isActive(false)
                     .userState(BASIC_STATE)
                     .build();
             return appUserDao.save(transientAppUser);
         }
-        return persistentAppUser;
+        return optional.get();
     }
 
     /**
